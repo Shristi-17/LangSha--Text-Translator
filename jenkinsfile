@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                sh 'rm -rf ttr-three'
+                sh 'git clone https://github.com/Shristi-17/LangSha--Text-Translator.git ttr-three'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('langsha-translator')
+                }
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                script {
+                    // Stop and remove any running container with same name
+                    sh 'docker stop translator-container || true'
+                    sh 'docker rm translator-container || true'
+
+                    // Run new container
+                    sh 'docker run -d -p 5000:5000 --name translator-container langsha-translator'
+                }
+            }
+        }
+    }
+}
