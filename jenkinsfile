@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'langsha-translator'
+        CONTAINER_NAME = 'langsha-container'
+        APP_PORT = '5000'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                script {
+                    sh 'rm -rf ttr-three'
+                    sh 'git clone https://github.com/Shristi-17/LangSha--Text-Translator.git ttr-three'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('ttr-three') {
+                    sh 'docker build -t $IMAGE_NAME .'
+                }
+            }
+        }
+
+        stage('Stop and Remove Existing Container') {
+            steps {
+                script {
+                    // Stop and remove old container if exists
+                    sh 'docker stop $CONTAINER_NAME || true'
+                    sh 'docker rm $CONTAINER_NAME || true'
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    sh 'docker run -d -p $APP_PORT:$APP_PORT --name $CONTAINER_NAME $IMAGE_NAME'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ App deployed successfully on port ${APP_PORT}!"
+        }
+        failure {
+            echo "❌ Build or deployment failed!"
+        }
+    }
+}
