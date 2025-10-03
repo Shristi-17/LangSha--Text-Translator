@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from googletrans import Translator
+import os
 
 app = Flask(__name__)
 
@@ -24,15 +25,12 @@ def show_supported_languages():
         "pt", "ro", "ru", "si", "sk", "sl", "sq", "sr", "sv", "sw", "ta", "te", "th", "tr", "uk", "ur",
         "vi", "xh", "zh", "zu"
     ]
-    # Create a dictionary to pass languages in 4 columns for easy rendering
     num_cols = 8
     num_rows = len(languages) // num_cols + (len(languages) % num_cols > 0)
-
     language_columns = []
     for i in range(num_rows):
         row = [languages[i + j * num_rows] if i + j * num_rows < len(languages) else "" for j in range(num_cols)]
         language_columns.append(row)
-
     return language_columns
 
 # Route for homepage
@@ -43,7 +41,6 @@ def index():
         target_lang = request.form['target_lang']
         
         if input_text and target_lang:
-            # Detect language and translate text
             detected_language = detect_language(input_text)
             translated_text = translate_text(input_text, target_lang)
             return render_template('index.html', detected_language=detected_language, translated_text=translated_text)
@@ -53,9 +50,5 @@ def index():
     return render_template('index.html', language_columns=show_supported_languages())
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
-
-
-
-
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
